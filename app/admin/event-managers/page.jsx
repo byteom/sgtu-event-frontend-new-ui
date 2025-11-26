@@ -228,10 +228,6 @@ export default function EventManagersPage() {
       <AdminHeader adminName={adminName} onLogout={handleLogout} />
 
       <main className="md:ml-64 p-4 sm:p-6 pt-16 sm:pt-20 pb-20 sm:pb-6">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold mb-2 text-dark-text dark:text-white">Event Managers</h1>
-          <p className="text-gray-600 dark:text-gray-400">Manage event manager accounts and permissions</p>
-        </div>
 
         {/* Filters and Search */}
         <div className="mb-6 flex flex-col sm:flex-row gap-4">

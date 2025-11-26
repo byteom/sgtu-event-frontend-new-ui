@@ -77,9 +77,6 @@ export default function AdminAnalyticsPage() {
         <AdminHeader adminName={adminName} onLogout={handleLogout} />
         
         <main className="p-4 sm:p-6 md:ml-64 pt-16 sm:pt-20 pb-20 sm:pb-6">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold mb-1 text-dark-text dark:text-white">Analytics</h1>
-          </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* TOP SCHOOLS */}

@@ -198,11 +198,7 @@ export default function AdminScansPage() {
         <AdminHeader adminName={adminName} onLogout={handleLogout} />
         
         <main className="p-4 sm:p-6 md:ml-64 pt-16 sm:pt-20 pb-20 sm:pb-6">
-          <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold mb-1 text-dark-text dark:text-white">Attendance Log</h1>
-            </div>
-            <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div className="mb-4 sm:mb-6 flex items-center gap-2 w-full sm:w-auto justify-end">
               <button 
                 onClick={handleDownloadExcel}
                 className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 text-sm border border-light-gray-border rounded-lg hover:bg-gray-50 transition"

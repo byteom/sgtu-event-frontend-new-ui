@@ -299,9 +299,6 @@ export default function AllStallsPage() {
         <AdminHeader adminName={adminName} onLogout={handleLogout} />
 
       <main className="md:ml-64 p-4 sm:p-6 pt-16 sm:pt-20 pb-20 sm:pb-6">
-        <div className="mb-4 sm:mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold mb-1 text-dark-text dark:text-white">Stall Management</h1>
-        </div>
 
         <div className="mb-4">
           <h2 className="text-base sm:text-lg font-semibold mb-1 text-dark-text dark:text-white">Stall List</h2>

@@ -1,36 +1,36 @@
 "use client";
 
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 export default function AdminMobileNav() {
+  const pathname = usePathname();
   const router = useRouter();
-  const path = usePathname();
 
-  const NavItem = ({ label, icon, to }) => (
+  const NavBtn = ({ label, icon, href }) => (
     <button
-      onClick={() => router.push(to)}
-      className={`flex flex-col items-center py-2 rounded-xl transition-colors
-        ${path === to 
-          ? "text-primary bg-blue-50 dark:bg-blue-900/20" 
-          : "text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-gray-300"
-        }
-      `}
+      onClick={() => router.push(href)}
+      className={`flex flex-col items-center py-2 rounded-xl
+        ${
+          pathname === href
+            ? "text-primary font-semibold"
+            : "text-gray-600 dark:text-gray-400"
+        }`}
     >
-      <span className="material-symbols-outlined text-2xl">{icon}</span>
-      <span className="text-xs font-medium mt-1">{label}</span>
+      <span className="material-symbols-outlined">{icon}</span>
+      <span className="text-xs">{label}</span>
     </button>
   );
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden 
-      bg-card-background dark:bg-[#0d1117] border-t border-light-gray-border dark:border-gray-800 shadow-lg">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50
+    bg-soft-background dark:bg-[#0d1220]
+    border-t border-light-gray-border shadow-[0_-4px_12px_rgba(0,0,0,0.08)]">
 
-      <div className="grid grid-cols-5 gap-1 p-2 max-w-xl mx-auto">
-        <NavItem label="Home" to="/admin" icon="dashboard" />
-        <NavItem label="Events" to="/admin/events" icon="event" />
-        <NavItem label="Managers" to="/admin/event-managers" icon="manage_accounts" />
-        <NavItem label="Students" to="/admin/students" icon="school" />
-        <NavItem label="Volunteers" to="/admin/volunteers" icon="group" />
+      <div className="grid grid-cols-4 gap-1 p-2 max-w-md mx-auto">
+        <NavBtn label="Home" icon="home" href="/admin" />
+        <NavBtn label="Events" icon="event" href="/admin/events" />
+        <NavBtn label="Analytics" icon="analytics" href="/admin/analytics" />
+        <NavBtn label="Profile" icon="person" href="/admin/settings" />
       </div>
     </nav>
   );

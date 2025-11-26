@@ -188,10 +188,6 @@ export default function AdminVolunteersPage() {
         <AdminHeader adminName={adminName} onLogout={handleLogout} />
         
         <main className="p-4 sm:p-6 md:ml-64 pt-16 sm:pt-20 pb-20 sm:pb-6">
-          <div className="mb-4 sm:mb-6">
-            <h1 className="text-xl sm:text-2xl font-bold mb-1 text-dark-text dark:text-white">Volunteers Management</h1>
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Manage and track all event volunteers.</p>
-          </div>
 
           {/* Search and Filter Bar */}
           <div className="mb-4 flex flex-col gap-3">

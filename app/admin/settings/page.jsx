@@ -10,6 +10,7 @@ import { useAdminAuth } from "@/hooks/useAuth";
 
 export default function AdminSettingsPage() {
   const { isAuthenticated, isChecking } = useAdminAuth();
+  const [theme, setTheme] = useState("light");
   const [adminProfile, setAdminProfile] = useState({
     email: "",
     full_name: "",
@@ -31,6 +32,20 @@ export default function AdminSettingsPage() {
       fetchProfile();
     }
   }, [isChecking, isAuthenticated]);
+
+  /* THEME LOADING */
+  useEffect(() => {
+    const saved = localStorage.getItem("theme") || "light";
+    setTheme(saved);
+    document.documentElement.classList.toggle("dark", saved === "dark");
+  }, []);
+
+  const toggleTheme = () => {
+    const next = theme === "light" ? "dark" : "light";
+    setTheme(next);
+    localStorage.setItem("theme", next);
+    document.documentElement.classList.toggle("dark", next === "dark");
+  };
 
   // Show loading while checking authentication
   if (isChecking) {
@@ -117,130 +132,120 @@ export default function AdminSettingsPage() {
     <div className="flex min-h-screen bg-soft-background dark:bg-dark-background">
       <AdminSidebar onLogout={handleLogout} />
       <div className="flex-1 flex flex-col">
-        <AdminHeader adminName={adminName} onLogout={handleLogout} />
-        
-        <main className="p-4 sm:p-6 md:ml-64 pt-16 sm:pt-20 pb-20 sm:pb-6">
-          <div className="mb-4 sm:mb-6">
-            <h1 className="text-xl sm:text-2xl font-bold mb-1 text-dark-text dark:text-white">Profile & Settings</h1>
-          </div>
+        <AdminHeader
+          theme={theme}
+          toggleTheme={toggleTheme}
+          adminName={adminProfile?.full_name || adminName}
+          onLogout={handleLogout}
+        />
+
+        <main className="p-4 sm:p-6 md:ml-64 pt-16 sm:pt-20 pb-20 sm:pb-6 max-w-4xl">
 
           {loading ? (
-            <div className="bg-card-background dark:bg-card-dark rounded-xl border border-light-gray-border shadow-soft p-6">
-              <div className="animate-pulse space-y-4">
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
-                <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
-                <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
-              </div>
-            </div>
+            <LoadingBlock />
           ) : (
-            <div className="bg-card-background dark:bg-card-dark rounded-xl border border-light-gray-border shadow-soft p-4 sm:p-6">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Profile Section */}
-                <div>
-                  <h2 className="text-lg font-semibold text-dark-text dark:text-white mb-4">Profile Information</h2>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-dark-text dark:text-gray-300 mb-2">
-                        Full Name
-                      </label>
-                      <input
-                        type="text"
-                        value={adminProfile.full_name || ""}
-                        disabled
-                        className="w-full px-4 py-2 border border-light-gray-border rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-500 cursor-not-allowed"
-                      />
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Name cannot be changed</p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-dark-text dark:text-gray-300 mb-2">
-                        Email
-                      </label>
-                      <input
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="w-full px-4 py-2 border border-light-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-dark-text dark:text-white bg-card-background dark:bg-gray-800"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-dark-text dark:text-gray-300 mb-2">
-                        Role
-                      </label>
-                      <input
-                        type="text"
-                        value={adminProfile.role || "ADMIN"}
-                        disabled
-                        className="w-full px-4 py-2 border border-light-gray-border rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-500 cursor-not-allowed"
-                      />
-                    </div>
+            <>
+              {/* Profile Header Card */}
+              <div className="bg-white dark:bg-white rounded-2xl shadow-soft p-6 sm:p-8 mb-6">
+                <div className="flex items-center gap-6 mb-6 pb-6 border-b border-gray-200">
+                  <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center text-white text-3xl font-bold shadow-md">
+                    {adminProfile?.full_name?.[0]?.toUpperCase() || "A"}
+                  </div>
+                  <div>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-dark-text mb-1">
+                      {adminProfile?.full_name || "Admin User"}
+                    </h1>
+                    <p className="text-gray-500 text-sm">{adminProfile?.role || "Administrator"}</p>
                   </div>
                 </div>
 
-                {/* Password Section */}
-                <div className="pt-6 border-t border-light-gray-border">
-                  <h2 className="text-lg font-semibold text-dark-text dark:text-white mb-4">Change Password</h2>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-dark-text dark:text-gray-300 mb-2">
-                        New Password
-                      </label>
-                      <input
-                        type="password"
-                        value={formData.password}
-                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                        className="w-full px-4 py-2 border border-light-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-dark-text dark:text-white bg-card-background dark:bg-gray-800"
-                        placeholder="Leave empty to keep current password"
-                      />
-                    </div>
+                {/* Profile Details Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                    <div>
-                      <label className="block text-sm font-medium text-dark-text dark:text-gray-300 mb-2">
-                        Confirm New Password
-                      </label>
-                      <input
-                        type="password"
-                        value={formData.confirmPassword}
-                        onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                        className="w-full px-4 py-2 border border-light-gray-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-dark-text dark:text-white bg-card-background dark:bg-gray-800"
-                        placeholder="Leave empty to keep current password"
-                      />
-                    </div>
+                  {/* Full Name */}
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                      <span className="material-symbols-outlined text-lg text-primary">person</span>
+                      Full Name
+                    </label>
+                    <p className="text-base font-medium text-gray-500 pl-7">
+                      {adminProfile?.full_name || "—"}
+                    </p>
                   </div>
-                </div>
 
-                {/* Submit Button */}
-                <div className="flex justify-end gap-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFormData({
-                        email: adminProfile.email || "",
-                        password: "",
-                        confirmPassword: ""
-                      });
-                    }}
-                    className="px-6 py-2 border border-light-gray-border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition text-dark-text dark:text-white"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={saving}
-                    className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {saving ? "Saving..." : "Save Changes"}
-                  </button>
+                  {/* Email */}
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                      <span className="material-symbols-outlined text-lg text-primary">mail</span>
+                      Email Address
+                    </label>
+                    <p className="text-base font-medium text-gray-500 pl-7">
+                      {adminProfile?.email || "—"}
+                    </p>
+                  </div>
+
+                  {/* Role */}
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                      <span className="material-symbols-outlined text-lg text-primary">admin_panel_settings</span>
+                      Role
+                    </label>
+                    <p className="text-base font-medium text-gray-500 pl-7">
+                      {adminProfile?.role || "ADMIN"}
+                    </p>
+                  </div>
+
+                  {/* Account Type */}
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                      <span className="material-symbols-outlined text-lg text-primary">verified_user</span>
+                      Account Type
+                    </label>
+                    <p className="text-base font-medium text-gray-500 pl-7">
+                      System Administrator
+                    </p>
+                  </div>
+
                 </div>
-              </form>
-            </div>
+              </div>
+
+              {/* Account Information Card */}
+              <div className="bg-white dark:bg-white rounded-2xl shadow-soft p-6 sm:p-8">
+                <h2 className="text-lg font-bold text-dark-text mb-4 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary">info</span>
+                  Account Information
+                </h2>
+                <div className="space-y-4 text-gray-500">
+                  <p className="flex items-start gap-2">
+                    <span className="material-symbols-outlined text-lg text-primary mt-0.5">check_circle</span>
+                    <span>Your account has full administrative privileges to manage the system.</span>
+                  </p>
+                  <p className="flex items-start gap-2">
+                    <span className="material-symbols-outlined text-lg text-primary mt-0.5">security</span>
+                    <span>For security reasons, some profile fields cannot be modified directly.</span>
+                  </p>
+                  <p className="flex items-start gap-2">
+                    <span className="material-symbols-outlined text-lg text-primary mt-0.5">support</span>
+                    <span>Contact system support if you need to update your profile information.</span>
+                  </p>
+                </div>
+              </div>
+            </>
           )}
+
         </main>
       </div>
       <AdminMobileNav />
+
     </div>
   );
 }
 
+function LoadingBlock() {
+  return (
+    <div className="flex flex-col items-center mt-20">
+      <div className="animate-spin h-12 w-12 rounded-full border-4 border-blue-500 border-t-transparent"></div>
+      <p className="text-gray-600 dark:text-gray-300 mt-4">Loading profile...</p>
+    </div>
+  );
+}

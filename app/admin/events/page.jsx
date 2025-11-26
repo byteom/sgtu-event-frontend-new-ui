@@ -133,12 +133,6 @@ export default function AdminEventsPage() {
         <AdminHeader adminName={adminName} onLogout={handleLogout} />
 
         <main className="p-4 sm:p-6 md:ml-64 pt-16 sm:pt-20 pb-20 sm:pb-6">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-dark-text dark:text-white mb-1">Events Management</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Manage and approve events created by Event Managers
-            </p>
-          </div>
 
           {/* Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">

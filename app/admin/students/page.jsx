@@ -174,9 +174,6 @@ export default function AdminStudentsPage() {
         <AdminHeader adminName={localStorage.getItem("admin_name") || "Admin"} onLogout={handleLogout} />
 
         <main className="p-4 sm:p-6 md:ml-64 pt-16 sm:pt-20 pb-20 sm:pb-6">
-          <div className="mb-4 sm:mb-6">
-            <h1 className="text-xl sm:text-2xl font-bold mb-1 text-dark-text dark:text-white">Students Management</h1>
-          </div>
 
           {/* Search and Filter Bar */} 
           <div className="mb-4 flex flex-col gap-3">

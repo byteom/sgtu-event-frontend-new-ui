@@ -11,6 +11,7 @@ import { useAdminAuth } from "@/hooks/useAuth";
 export default function AdminHome() {
   const { isAuthenticated, isChecking } = useAdminAuth();
   const [adminName, setAdminName] = useState("Admin");
+  const [theme, setTheme] = useState("light");
   const [stats, setStats] = useState({
     totalStudents: 0,
     totalVolunteers: 0,
@@ -30,6 +31,20 @@ export default function AdminHome() {
       fetchStats();
     }
   }, [isChecking, isAuthenticated]);
+
+  // ------------------ LOAD THEME ------------------
+  useEffect(() => {
+    const saved = localStorage.getItem("theme") || "light";
+    setTheme(saved);
+    document.documentElement.classList.toggle("dark", saved === "dark");
+  }, []);
+
+  const toggleTheme = () => {
+    const next = theme === "light" ? "dark" : "light";
+    setTheme(next);
+    localStorage.setItem("theme", next);
+    document.documentElement.classList.toggle("dark", next === "dark");
+  };
 
   // Show loading while checking authentication
   if (isChecking) {
@@ -102,24 +117,14 @@ export default function AdminHome() {
     <div className="flex min-h-screen bg-soft-background dark:bg-dark-background">
       <AdminSidebar onLogout={handleLogout} />
       <div className="flex-1 flex flex-col">
-        <AdminHeader adminName={adminName} onLogout={handleLogout} />
+        <AdminHeader
+          theme={theme}
+          toggleTheme={toggleTheme}
+          adminName={adminName}
+          onLogout={handleLogout}
+        />
 
         <main className="p-4 sm:p-6 md:ml-64 pt-16 sm:pt-20 pb-20 sm:pb-6">
-          <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold mb-1 text-dark-text dark:text-white">Dashboard Overview</h1>
-            </div>
-            <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-              <button className="p-2 text-dark-text hover:bg-gray-100 rounded-lg transition hidden sm:flex">
-                <span className="material-symbols-outlined text-xl">notifications</span>
-              </button>
-              <button className="flex-1 sm:flex-initial px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition text-sm font-medium flex items-center justify-center gap-2">
-                <span className="material-symbols-outlined text-lg">add</span>
-                <span className="hidden sm:inline">New Event</span>
-                <span className="sm:hidden">New</span>
-              </button>
-            </div>
-          </div>
           
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

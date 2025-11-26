@@ -4,77 +4,11 @@ import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
-export default function AdminHeader({ adminName, onLogout }) {
+export default function AdminHeader({ theme, toggleTheme, adminName, onLogout }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [theme, setTheme] = useState("light");
-  const [mounted, setMounted] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const menuRef = useRef(null);
-
-  useEffect(() => {
-    setMounted(true);
-    // Initialize theme from localStorage
-    const savedTheme = localStorage.getItem("theme") || "light";
-    setTheme(savedTheme);
-    // Apply theme to document immediately
-    const html = document.documentElement;
-    if (savedTheme === "dark") {
-      html.classList.add("dark");
-    } else {
-      html.classList.remove("dark");
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    const html = document.documentElement;
-    const currentTheme = html.classList.contains("dark") ? "dark" : "light";
-    const next = currentTheme === "light" ? "dark" : "light";
-    
-    // Update state
-    setTheme(next);
-    
-    // Update localStorage
-    localStorage.setItem("theme", next);
-    
-    // Apply theme to document immediately
-    if (next === "dark") {
-      html.classList.add("dark");
-    } else {
-      html.classList.remove("dark");
-    }
-    
-    // Force a re-render by dispatching a custom event
-    window.dispatchEvent(new Event("themechange"));
-  };
-
-  // Sync theme with DOM on mount and theme changes
-  useEffect(() => {
-    if (!mounted) return;
-    
-    const updateTheme = () => {
-      const html = document.documentElement;
-      const isDark = html.classList.contains("dark");
-      setTheme(isDark ? "dark" : "light");
-    };
-    
-    // Initial sync
-    updateTheme();
-    
-    // Listen for theme changes
-    const observer = new MutationObserver(updateTheme);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-    
-    window.addEventListener("themechange", updateTheme);
-    
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("themechange", updateTheme);
-    };
-  }, [mounted]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -101,40 +35,17 @@ export default function AdminHeader({ adminName, onLogout }) {
   const handleLogout = async () => {
     if (onLogout) {
       await onLogout();
-    } else {
-      try {
-        const { default: api } = await import("@/lib/api");
-        await api.post("/admin/logout");
-      } catch(e){}
-      localStorage.removeItem("admin_token");
-      localStorage.removeItem("admin_name");
-      router.replace("/");
     }
     setShowProfileMenu(false);
   };
-
-  if (!mounted) {
-    // Prevent hydration mismatch by showing default
-    return (
-      <header className="fixed top-0 right-0 left-0 md:left-64 h-20 flex items-center bg-card-background dark:bg-[#0d1117] border-b border-light-gray-border z-30">
-        <div className="w-full flex items-center justify-between px-4 sm:px-6 xl:px-8 gap-2 sm:gap-4">
-          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
-            <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse" />
-            <div className="h-6 w-48 bg-gray-200 animate-pulse rounded" />
-          </div>
-          <div className="w-10 h-10 bg-gray-200 animate-pulse rounded-xl" />
-        </div>
-      </header>
-    );
-  }
 
   return (
     <header
       className="
         fixed top-0 right-0 left-0 md:left-64
         h-16 flex items-center
-        bg-card-background dark:bg-[#0d1117]
-        border-b border-light-gray-border dark:border-gray-800
+        bg-card-background dark:bg-card-background
+        border-b border-light-gray-border
         z-30
       "
     >
@@ -148,24 +59,11 @@ export default function AdminHeader({ adminName, onLogout }) {
 
         {/* RIGHT - ACTIONS */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Notification Bell - Hidden on mobile */}
-          <button
-            className="
-              text-dark-text dark:text-gray-300 
-              hover:bg-gray-100 dark:hover:bg-gray-800
-              p-2 rounded-lg transition
-              hidden sm:flex
-            "
-            aria-label="Notifications"
-          >
-            <span className="material-symbols-outlined text-xl sm:text-2xl">notifications</span>
-          </button>
-
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
             className="
-              text-dark-text dark:text-gray-300 
+              text-dark-text dark:text-gray-300
               hover:bg-gray-100 dark:hover:bg-gray-800
               p-2 rounded-lg transition
             "
@@ -233,6 +131,7 @@ function getPageTitle(pathname) {
     "/admin/analytics": "Analytics",
     "/admin/reports": "Reports & Statistics",
     "/admin/settings": "Profile & Settings",
+    "/admin/event-managers": "Event Managers",
   };
   return titles[pathname] || "Dashboard Overview";
 }
