@@ -16,6 +16,7 @@ export default function StudentHeader({ theme, toggleTheme, onLogout, title }) {
     "/student/profile": "My Profile",
     "/student/my-visits": "My Visits",
     "/student/feedback": "Stall Feedback",
+    "/student/stall-scan": "Scan Stall QR",
     "/student/ranking": "Stall Ranking",
   };
 

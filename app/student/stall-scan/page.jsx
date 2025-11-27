@@ -680,7 +680,7 @@ export default function StallScanPage() {
                   )}
                   
                   <button
-                    onClick={() => router.push("/student/feedback")}
+                    onClick={() => router.push("/student/my-visits")}
                     className="w-full px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-xl transition shadow-lg"
                   >
                     View My Feedback

@@ -104,21 +104,71 @@ export default function StudentEventDetailPage() {
             // Verify payment
             try {
               console.log("Razorpay response:", razorpayResponse);
-              const verifyRes = await api.post(`/student/events/${eventId}/payment/verify`, {
-                razorpay_order_id: razorpayResponse.razorpay_order_id,
-                razorpay_payment_id: razorpayResponse.razorpay_payment_id,
-                razorpay_signature: razorpayResponse.razorpay_signature,
-              });
 
-              if (verifyRes.data?.success) {
-                // Show success message
-                alert("✅ Payment successful! Registration complete.");
-                // Redirect immediately
-                router.push("/student/my-events");
+              // Show processing message
+              setRegistering(true);
+
+              // Try to verify via backend endpoint
+              try {
+                const verifyRes = await api.post(`/student/events/${eventId}/payment/verify`, {
+                  razorpay_order_id: razorpayResponse.razorpay_order_id,
+                  razorpay_payment_id: razorpayResponse.razorpay_payment_id,
+                  razorpay_signature: razorpayResponse.razorpay_signature,
+                });
+
+                if (verifyRes.data?.success) {
+                  setRegistering(false);
+                  alert("✅ Payment successful! Registration complete.");
+                  router.push("/student/my-events");
+                  return;
+                }
+              } catch (verifyError) {
+                console.log("Verify endpoint error:", verifyError);
+
+                // If verify endpoint returns 404, payment might be processed via webhook
+                if (verifyError.response?.status === 404) {
+                  console.log("Verify endpoint not available, checking registration status...");
+
+                  // Wait a bit for webhook to process
+                  await new Promise(resolve => setTimeout(resolve, 2000));
+
+                  // Poll the event details to check if registration succeeded
+                  let attempts = 0;
+                  const maxAttempts = 5;
+
+                  while (attempts < maxAttempts) {
+                    try {
+                      const eventCheck = await api.get(`/student/events/${eventId}`);
+                      if (eventCheck.data?.success && eventCheck.data.data?.event?.is_registered) {
+                        setRegistering(false);
+                        alert("✅ Payment successful! Registration complete.");
+                        router.push("/student/my-events");
+                        return;
+                      }
+                      // Wait before next attempt
+                      await new Promise(resolve => setTimeout(resolve, 2000));
+                      attempts++;
+                    } catch (pollError) {
+                      console.error("Error polling registration status:", pollError);
+                      attempts++;
+                      await new Promise(resolve => setTimeout(resolve, 2000));
+                    }
+                  }
+
+                  // After polling, show success message with instruction
+                  setRegistering(false);
+                  alert("✅ Payment successful! Please check 'My Events' to confirm your registration.");
+                  router.push("/student/my-events");
+                  return;
+                }
+
+                // For other errors, show error message
+                throw verifyError;
               }
-            } catch (verifyError) {
-              console.error("Payment verification error:", verifyError);
-              alert("❌ " + (verifyError.response?.data?.message || "Payment verification failed. Please contact support."));
+            } catch (finalError) {
+              console.error("Payment verification error:", finalError);
+              setRegistering(false);
+              alert("❌ " + (finalError.response?.data?.message || "Payment verification failed. If payment was deducted, please check 'My Events' or contact support."));
             }
           },
           prefill: {

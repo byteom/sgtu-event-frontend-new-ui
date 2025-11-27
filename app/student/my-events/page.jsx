@@ -285,7 +285,7 @@ function RegistrationCard({ registration, onViewQR }) {
             <span className="material-symbols-outlined text-base">arrow_forward</span>
           </button>
           <button
-            onClick={() => window.location.href = "/student/feedback"}
+            onClick={() => window.location.href = "/student/stall-scan"}
             className="flex items-center gap-3 text-sm text-yellow-600 hover:text-yellow-700 transition cursor-pointer group"
           >
             <span className="material-symbols-outlined group-hover:scale-110 transition-transform">rate_review</span>
