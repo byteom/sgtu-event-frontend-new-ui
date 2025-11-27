@@ -376,6 +376,7 @@ export default function AnalyticsPage() {
   const [events, setEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [analytics, setAnalytics] = useState(null);
+  const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const router = useRouter();
@@ -439,14 +440,24 @@ export default function AnalyticsPage() {
 
   const fetchAnalytics = async (eventId) => {
     try {
-      const res = await api.get(`/event-manager/events/${eventId}/analytics`);
+      const [analyticsRes, registrationsRes] = await Promise.all([
+        api.get(`/event-manager/events/${eventId}/analytics`),
+        api.get(`/event-manager/events/${eventId}/registrations`).catch(() => ({ data: { data: { data: [] } } }))
+      ]);
 
-      if (res.data?.success) {
-        setAnalytics(res.data.data);
+      if (analyticsRes.data?.success) {
+        setAnalytics(analyticsRes.data.data);
+      }
+
+      if (registrationsRes.data?.success) {
+        setRegistrations(registrationsRes.data.data.data || []);
+      } else {
+        setRegistrations([]);
       }
     } catch (err) {
       console.error("Error fetching analytics:", err);
       setAnalytics(null);
+      setRegistrations([]);
     }
   };
 
@@ -519,7 +530,7 @@ export default function AnalyticsPage() {
             ) : events.length === 0 ? (
               <EmptyState router={router} />
             ) : analytics ? (
-              <AnalyticsContent selectedEventData={selectedEventData} analytics={analytics} />
+              <AnalyticsContent selectedEventData={selectedEventData} analytics={analytics} registrations={registrations} />
             ) : (
               <NoAnalyticsState />
             )}
@@ -589,7 +600,61 @@ function NoAnalyticsState() {
   );
 }
 
-function AnalyticsContent({ selectedEventData, analytics }) {
+function AnalyticsContent({ selectedEventData, analytics, registrations }) {
+  // Calculate correct registration counts based on payment status
+  const getCorrectCounts = () => {
+    if (!registrations || registrations.length === 0) {
+      return {
+        total: 0,
+        confirmed: 0,
+        pending: 0,
+        cancelled: 0,
+        waitlisted: 0
+      };
+    }
+
+    const isPaidEvent = selectedEventData?.event_type === 'PAID';
+
+    // Total - all registrations
+    const total = registrations.length;
+
+    // Confirmed - only payment completed
+    const confirmed = registrations.filter(reg => {
+      if (isPaidEvent) {
+        return reg.payment_status === 'COMPLETED';
+      }
+      return reg.registration_status === 'CONFIRMED' || 
+             reg.payment_status === 'NOT_REQUIRED' || 
+             reg.payment_status === 'COMPLETED';
+    }).length;
+
+    // Pending - payment pending wale
+    const pending = registrations.filter(reg => {
+      if (isPaidEvent) {
+        return reg.payment_status === 'PENDING';
+      }
+      return reg.registration_status === 'PENDING';
+    }).length;
+
+    const cancelled = registrations.filter(reg => 
+      reg.registration_status === 'CANCELLED' || reg.payment_status === 'FAILED'
+    ).length;
+
+    const waitlisted = registrations.filter(reg => 
+      reg.registration_status === 'WAITLISTED'
+    ).length;
+
+    return {
+      total,
+      confirmed,
+      pending,
+      cancelled,
+      waitlisted
+    };
+  };
+
+  const counts = getCorrectCounts();
+
   return (
     <div className="space-y-8">
       {/* Event Summary */}
@@ -628,24 +693,22 @@ function AnalyticsContent({ selectedEventData, analytics }) {
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <MetricCard title="Total Registrations" value={analytics.stats?.total_registrations || 0} icon="how_to_reg" color="primary" />
-          <MetricCard title="Confirmed Attendees" value={analytics.stats?.registrations?.confirmed || 0} icon="check_circle" color="emerald" />
+          <MetricCard title="Total Registrations" value={counts.total} icon="how_to_reg" color="primary" />
+          <MetricCard title="Confirmed Attendees" value={counts.confirmed} icon="check_circle" color="emerald" />
           <MetricCard title="Total Revenue" value={`₹${analytics.stats?.total_revenue || 0}`} icon="payments" color="fuchsia" />
           <MetricCard title="Active Volunteers" value={analytics.stats?.volunteers?.total_volunteers || 0} icon="groups" color="accent" />
         </div>
       </div>
 
       {/* Registration Breakdown */}
-      {analytics.stats?.registrations && (
-        <SectionCard title="Registration Status Breakdown" icon="timeline">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <StatusCard label="Confirmed" value={analytics.stats.registrations.confirmed || 0} icon="verified" color="emerald" />
-            <StatusCard label="Pending" value={analytics.stats.registrations.pending || 0} icon="hourglass_empty" color="accent" />
-            <StatusCard label="Cancelled" value={analytics.stats.registrations.cancelled || 0} icon="block" color="red" />
-            <StatusCard label="Waitlisted" value={analytics.stats.registrations.waitlisted || 0} icon="list_alt" color="gray" />
-          </div>
-        </SectionCard>
-      )}
+      <SectionCard title="Registration Status Breakdown" icon="timeline">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <StatusCard label="Confirmed" value={counts.confirmed} icon="verified" color="emerald" />
+          <StatusCard label="Pending" value={counts.pending} icon="hourglass_empty" color="accent" />
+          <StatusCard label="Cancelled" value={counts.cancelled} icon="block" color="red" />
+          <StatusCard label="Waitlisted" value={counts.waitlisted} icon="list_alt" color="gray" />
+        </div>
+      </SectionCard>
 
       {/* Payment Breakdown (Conditional render for paid events) */}
       {selectedEventData?.event_type !== "FREE" && analytics.stats?.payment_breakdown && (

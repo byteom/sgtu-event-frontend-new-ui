@@ -199,15 +199,14 @@ export default function AdminScansPage() {
         
         <main className="p-4 sm:p-6 md:ml-64 pt-16 sm:pt-20 pb-20 sm:pb-6">
           <div className="mb-4 sm:mb-6 flex items-center gap-2 w-full sm:w-auto justify-end">
-              <button 
-                onClick={handleDownloadExcel}
-                className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 text-sm border border-light-gray-border rounded-lg hover:bg-gray-50 transition"
-              >
-                <span className="material-symbols-outlined text-lg">download</span>
-                <span className="hidden sm:inline">Download Excel</span>
-                <span className="sm:hidden">Download</span>
-              </button>
-            </div>
+            <button 
+              onClick={handleDownloadExcel}
+              className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 text-sm border border-light-gray-border rounded-lg hover:bg-gray-50 transition"
+            >
+              <span className="material-symbols-outlined text-lg">download</span>
+              <span className="hidden sm:inline">Download Excel</span>
+              <span className="sm:hidden">Download</span>
+            </button>
           </div>
 
           {/* Search and Filter Bar */}

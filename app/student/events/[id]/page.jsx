@@ -111,12 +111,14 @@ export default function StudentEventDetailPage() {
               });
 
               if (verifyRes.data?.success) {
-                alert("Payment successful! Registration complete.");
+                // Show success message
+                alert("✅ Payment successful! Registration complete.");
+                // Redirect immediately
                 router.push("/student/my-events");
               }
             } catch (verifyError) {
               console.error("Payment verification error:", verifyError);
-              alert(verifyError.response?.data?.message || "Payment verification failed. Please contact support.");
+              alert("❌ " + (verifyError.response?.data?.message || "Payment verification failed. Please contact support."));
             }
           },
           prefill: {
@@ -126,6 +128,15 @@ export default function StudentEventDetailPage() {
           },
           theme: {
             color: "#2563eb",
+          },
+          modal: {
+            ondismiss: function() {
+              console.log("Payment modal closed by user");
+              // Check if payment was successful by refreshing the event details
+              fetchEventDetails();
+            },
+            confirm_close: true,
+            escape: false,
           },
         };
 

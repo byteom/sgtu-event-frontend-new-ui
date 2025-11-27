@@ -411,6 +411,20 @@ import api from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useEventManagerAuth } from "@/hooks/useAuth";
 
+// Helper component for styled input - MOVED OUTSIDE to prevent re-creation
+const StyledInput = ({ label, required, children, helperText }) => (
+  <div>
+      <label className="block text-sm font-medium text-dark-text dark:text-gray-200 mb-2 flex items-center gap-1">
+          {label} {required && <span className="text-red-500">*</span>}
+      </label>
+      {children}
+      {helperText && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 pl-1">{helperText}</p>}
+  </div>
+);
+
+// Class for all input fields (for consistency)
+const inputClass = "w-full px-4 py-2.5 border border-light-gray-border dark:border-gray-600 rounded-xl bg-card-background text-dark-text dark:text-white focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 shadow-sm placeholder:text-gray-400 dark:placeholder:text-gray-600";
+
 export default function CreateEventPage() {
   const { isAuthenticated, isChecking } = useEventManagerAuth();
   const router = useRouter();
@@ -544,21 +558,6 @@ export default function CreateEventPage() {
     localStorage.removeItem("event_manager_email");
     router.replace("/");
   };
-
-  // Helper component for styled input
-  const StyledInput = ({ label, required, children, helperText }) => (
-    <div>
-        <label className="block text-sm font-medium text-dark-text dark:text-gray-200 mb-2 flex items-center gap-1">
-            {label} {required && <span className="text-red-500">*</span>}
-        </label>
-        {children}
-        {helperText && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 pl-1">{helperText}</p>}
-    </div>
-  );
-
-  // Class for all input fields (for consistency)
-  const inputClass = "w-full px-4 py-2.5 border border-light-gray-border dark:border-gray-600 rounded-xl bg-card-background text-dark-text dark:text-white focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-200 shadow-sm placeholder:text-gray-400 dark:placeholder:text-gray-600";
-
 
   return (
     <div className="flex min-h-screen bg-soft-background dark:bg-dark-background">

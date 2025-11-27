@@ -274,12 +274,35 @@ function OverviewTab({ event, stats, registrations, volunteers, stalls }) {
     return date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" });
   };
 
+  // Calculate confirmed registrations based on event type and payment status
+  const getConfirmedCount = () => {
+    if (!registrations || registrations.length === 0) return 0;
+
+    // For PAID events, only count registrations with payment_status === 'COMPLETED'
+    if (event.event_type === 'PAID') {
+      return registrations.filter(reg =>
+        reg.payment_status === 'COMPLETED' &&
+        (reg.registration_status === 'CONFIRMED' || !reg.registration_status)
+      ).length;
+    }
+
+    // For FREE events, count all with registration_status === 'CONFIRMED' or payment_status === 'NOT_REQUIRED'
+    return registrations.filter(reg =>
+      reg.registration_status === 'CONFIRMED' ||
+      reg.payment_status === 'NOT_REQUIRED' ||
+      reg.payment_status === 'COMPLETED'
+    ).length;
+  };
+
+  // Calculate total registrations (only confirmed ones)
+  const totalConfirmed = getConfirmedCount();
+
   return (
     <div className="space-y-6">
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Total Registrations" value={registrations?.length || 0} icon="how_to_reg" />
-        <StatCard title="Confirmed" value={stats?.confirmed_registrations || 0} icon="check_circle" positive />
+        <StatCard title="Total Registrations" value={totalConfirmed} icon="how_to_reg" />
+        <StatCard title="Confirmed" value={totalConfirmed} icon="check_circle" positive />
         <StatCard title="Volunteers Assigned" value={volunteers?.length || 0} icon="groups" />
         <StatCard title="Stalls Assigned" value={stalls?.length || 0} icon="store" />
       </div>
