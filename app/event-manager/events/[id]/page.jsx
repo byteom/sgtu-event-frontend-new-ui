@@ -75,7 +75,10 @@ export default function EventDetailPage() {
       }
 
       if (analyticsRes.data?.success) {
+        console.log("📊 Analytics Data Received:", analyticsRes.data.data);
         setAnalytics(analyticsRes.data.data);
+      } else {
+        console.log("⚠️ Analytics data not successful:", analyticsRes.data);
       }
     } catch (error) {
       console.error("Error fetching event details:", error);
@@ -234,7 +237,7 @@ export default function EventDetailPage() {
             )}
 
             {activeTab === "analytics" && (
-              <AnalyticsTab analytics={analytics} stats={stats} />
+              <AnalyticsTab analytics={analytics} stats={stats} event={event} registrations={registrations} />
             )}
           </div>
         </main>
@@ -991,7 +994,7 @@ function StallsTab({ stalls, eventId, onUpdate }) {
   );
 }
 
-function AnalyticsTab({ analytics, stats }) {
+function AnalyticsTab({ analytics, stats, event, registrations }) {
   if (!analytics) {
     return (
       <div className="text-center py-12 bg-card-background dark:bg-card-dark rounded-xl border border-light-gray-border">
@@ -1001,42 +1004,112 @@ function AnalyticsTab({ analytics, stats }) {
     );
   }
 
+  // Calculate correct registration counts from actual registrations data
+  const getCorrectCounts = () => {
+    if (!registrations || registrations.length === 0) {
+      return {
+        total: 0,
+        confirmed: 0,
+        pending: 0,
+        cancelled: 0,
+        waitlisted: 0
+      };
+    }
+
+    const isPaidEvent = event?.event_type === 'PAID';
+
+    // Total - all registrations
+    const total = registrations.length;
+
+    // Confirmed - only payment completed for paid events
+    const confirmed = registrations.filter(reg => {
+      if (isPaidEvent) {
+        return reg.payment_status === 'COMPLETED';
+      }
+      return reg.registration_status === 'CONFIRMED' ||
+             reg.payment_status === 'NOT_REQUIRED' ||
+             reg.payment_status === 'COMPLETED';
+    }).length;
+
+    // Pending - payment pending
+    const pending = registrations.filter(reg => {
+      if (isPaidEvent) {
+        return reg.payment_status === 'PENDING';
+      }
+      return reg.registration_status === 'PENDING';
+    }).length;
+
+    const cancelled = registrations.filter(reg =>
+      reg.registration_status === 'CANCELLED' || reg.payment_status === 'FAILED'
+    ).length;
+
+    const waitlisted = registrations.filter(reg =>
+      reg.registration_status === 'WAITLISTED'
+    ).length;
+
+    return {
+      total,
+      confirmed,
+      pending,
+      cancelled,
+      waitlisted
+    };
+  };
+
+  const counts = getCorrectCounts();
+
   return (
     <div className="space-y-6">
       <h2 className="text-lg font-semibold text-dark-text dark:text-white">Event Analytics</h2>
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Total Registrations" value={analytics.stats?.total_registrations || 0} icon="how_to_reg" />
-        <StatCard title="Total Revenue" value={`₹${analytics.stats?.total_revenue || 0}`} icon="payments" positive />
-        <StatCard title="Volunteers" value={analytics.stats?.volunteers?.total_volunteers || 0} icon="groups" />
-        <StatCard title="Avg Scans/Volunteer" value={analytics.volunteer_performance?.length || 0} icon="qr_code_scanner" />
+        <StatCard
+          title="Total Registrations"
+          value={counts.total}
+          icon="how_to_reg"
+        />
+        <StatCard
+          title="Confirmed"
+          value={counts.confirmed}
+          icon="check_circle"
+          positive
+        />
+        <StatCard
+          title="Total Revenue"
+          value={`₹${analytics?.stats?.total_revenue || 0}`}
+          icon="payments"
+          positive
+        />
+        <StatCard
+          title="Volunteers"
+          value={analytics?.stats?.volunteers?.total_volunteers || 0}
+          icon="groups"
+        />
       </div>
 
       {/* Registration Stats */}
-      {analytics.stats?.registrations && (
-        <div className="bg-card-background dark:bg-card-dark p-6 rounded-xl border border-light-gray-border">
-          <h3 className="text-base font-semibold text-dark-text dark:text-white mb-4">Registration Breakdown</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div>
-              <p className="text-2xl font-bold text-green-600">{analytics.stats.registrations.confirmed || 0}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Confirmed</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-yellow-600">{analytics.stats.registrations.pending || 0}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Pending</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-red-600">{analytics.stats.registrations.cancelled || 0}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Cancelled</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-600">{analytics.stats.registrations.waitlisted || 0}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Waitlisted</p>
-            </div>
+      <div className="bg-card-background dark:bg-card-dark p-6 rounded-xl border border-light-gray-border">
+        <h3 className="text-base font-semibold text-dark-text dark:text-white mb-4">Registration Breakdown</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div>
+            <p className="text-2xl font-bold text-green-600">{counts.confirmed}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Confirmed</p>
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-yellow-600">{counts.pending}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Pending</p>
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-red-600">{counts.cancelled}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Cancelled</p>
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-gray-600">{counts.waitlisted}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Waitlisted</p>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
